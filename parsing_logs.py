@@ -1,5 +1,6 @@
 import pandas
 from collections import defaultdict, Counter
+from openpyxl import load_workbook
 
 def getvalue(object_dict, item):
     """функция, в которой выводится значение заданного ключа:
@@ -11,16 +12,6 @@ def getvalue(object_dict, item):
             value = v
             break
     return value
-
-#def getlist(element_list):
-#    """функция создает список с товарами
-#    :param element_list: список на входе, в котором
-#    элемент списка = ключ
-#    количество одинаковых элементов = значение"""
-#    element_dict = defaultdict(int)
-#    for element in element_list:
-#        element_dict[element] += 1
-#    return list(element_dict)
 
 
 # читаем файл эксель построчно с указанием вкладки
@@ -43,8 +34,16 @@ for record in logs_dict:
         men_item_list.extend(getvalue(record, 'Купленные товары').split(','))
     else:
         women_item_list.extend(getvalue(record, 'Купленные товары').split(','))
-        
-print(browser_list)
-print(Counter(item_list).most_common(1))
-print(Counter(men_item_list).most_common(1))
-print(Counter(women_item_list).most_common(1))
+
+#записываем полученные данные в отчет
+wb = load_workbook(filename='report.xlsx')
+sheet = wb['Лист1']
+#популярные товары среди мужчин и женщин
+sheet['B31'] = Counter(men_item_list).most_common(1)[0][0]
+sheet['B32'] = Counter(women_item_list).most_common(1)[0][0]
+#непопулярные товары среди мужчин и женщин
+len_men_counter = len(men_item_list)
+sheet['B33'] = Counter(men_item_list).most_common()[:-(len_men_counter + 1): -1][0][0]
+len_women_counter = len(men_item_list)
+sheet['B34'] = Counter(women_item_list).most_common()[:-(len_women_counter + 1): -1][0][0]
+wb.save('report.xlsx')
